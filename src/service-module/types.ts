@@ -24,7 +24,6 @@ export interface FeathersVuexOptions {
   nameStyle?: string
   paramsForServer?: string[]
   preferUpdate?: boolean
-  replaceItems?: boolean
   skipRequestIfExists?: boolean
   whitelist?: string[]
 }
@@ -53,7 +52,6 @@ export interface MakeServicePluginOptions {
   debug?: boolean
   enableEvents?: boolean
   preferUpdate?: boolean
-  replaceItems?: boolean
   skipRequestIfExists?: boolean
   nameStyle?: string
   debounceEventsTime?: number
@@ -184,6 +182,8 @@ export interface ModelStatic extends EventEmitter {
     [key: number]: Model | undefined
   }
 
+  cachedById: any
+
   /**
    * The BaseModel constructor calls mergeWithAccessors(this, newData).
    * This utility function correctly copies data between both regular
@@ -195,7 +195,6 @@ export interface ModelStatic extends EventEmitter {
    * this method like MyModel.merge(this, newData).
    * @param dest destination object
    * @param source source object
-   * @param blacklist keys to ignore when merging
    * @example
    * class Todo extends BaseModel {
    *   public constructor(data, options?) {
@@ -207,7 +206,7 @@ export interface ModelStatic extends EventEmitter {
    *   }
    * }
    */
-  merge(dest: unknown, source: unknown, blacklist?: string[]): void
+  merge(dest: unknown, source: unknown): void
 
   /**
    * Create new Model

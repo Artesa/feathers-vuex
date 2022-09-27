@@ -5,7 +5,6 @@ eslint
 */
 import decode from 'jwt-decode'
 import inflection from 'inflection'
-import type Vue from 'vue-demi'
 import fastCopy from 'fast-copy'
 import _isObject from 'lodash/isObject'
 import _trim from 'lodash/trim'
@@ -439,10 +438,7 @@ export function isFeathersVuexInstance(val) {
   return !!(val.constructor.modelName || val.constructor.namespace)
 }
 
-const defaultBlacklist = ['__isClone', '__ob__']
-
 type MergeWithAccessorsOptions = {
-  blacklist?: string[]
   suppressFastCopy?: boolean
 }
 
@@ -451,90 +447,11 @@ export function mergeWithAccessors(
   source,
   _opts?: MergeWithAccessorsOptions
 ) {
-  const sourceProps = Object.getOwnPropertyNames(source)
-  if (!sourceProps.length) {
-    return dest
+  if (_opts?.suppressFastCopy) {
+    return Object.assign(dest, source)
+  } else {
+    return Object.assign(dest, fastCopy(source))
   }
-
-  const blacklist = _opts?.blacklist || defaultBlacklist
-  const suppressFastCopy = !!_opts?.suppressFastCopy
-
-  const sourceIsVueObservable = '__ob__' in source
-  const destIsVueObservable = '__ob__' in dest
-
-  for (let i = 0, len = sourceProps.length; i < len; i++) {
-    const key = sourceProps[i]
-
-    const destDesc = Object.getOwnPropertyDescriptor(dest, key)
-
-    // if (Array.isArray(source[key]) && source[key].find(i => i.__ob__)) {
-    //   sourceIsVueObservable = true
-    // }
-    // if (Array.isArray(dest[key]) && dest[key].find(i => i.__ob__)) {
-    //   destIsVueObservable = true
-    // }
-
-    // This might have to be uncommented, but we'll try it this way, for now.
-    // if (!sourceDesc.enumerable) {
-    //   return
-    // }
-
-    // If the destination is not writable, return. Also ignore blacklisted keys.
-    // Must explicitly check if writable is false
-    if ((destDesc && destDesc.writable === false) || blacklist.includes(key)) {
-      continue
-    }
-
-    // Handle Vue observable objects
-    if (destIsVueObservable || sourceIsVueObservable) {
-      // Do not use fastCopy directly on a feathers-vuex BaseModel instance to keep from breaking reactivity.
-      const val =
-        !suppressFastCopy &&
-        _isObject(source[key]) &&
-        !isFeathersVuexInstance(source[key])
-          ? fastCopy(source[key])
-          : source[key]
-
-      try {
-        dest[key] = val
-      } catch (err) {
-        if (!err.message.includes('getter')) {
-          throw err
-        }
-      }
-
-      continue
-    }
-
-    const sourceDesc = Object.getOwnPropertyDescriptor(source, key)
-
-    // Handle defining accessors
-    if (
-      typeof sourceDesc.get === 'function' ||
-      typeof sourceDesc.set === 'function'
-    ) {
-      Object.defineProperty(dest, key, sourceDesc)
-      continue
-    }
-
-    // Do not attempt to overwrite a getter in the dest object
-    if (destDesc && typeof destDesc.get === 'function') {
-      continue
-    }
-
-    // Assign values
-    // Do not allow sharing of deeply-nested objects between instances
-    // Potentially breaks accessors on nested data. Needs recursion if this is an issue
-    let value
-    if (
-      _isObject(sourceDesc.value) &&
-      !isFeathersVuexInstance(sourceDesc.value)
-    ) {
-      value = suppressFastCopy ? sourceDesc.value : fastCopy(sourceDesc.value)
-    }
-    dest[key] = value || sourceDesc.value
-  }
-  return dest
 }
 
 export function checkNamespace(namespace, item, debug) {

@@ -47,7 +47,6 @@ const defaults: FeathersVuexOptions = {
   nameStyle: 'short', // Determines the source of the module name. 'short', 'path', or 'explicit'
   paramsForServer: ['$populateParams'], // Custom query operators that are ignored in the find getter, but will pass through to the server. $populateParams is for https://feathers-graph-populate.netlify.app/
   preferUpdate: false, // When true, calling model.save() will do an update instead of a patch.
-  replaceItems: false, // Instad of merging in changes in the store, replace the entire record.
   serverAlias: 'api',
   handleEvents: {} as HandleEvents,
   skipRequestIfExists: false, // For get action, if the record already exists in store, skip the remote request

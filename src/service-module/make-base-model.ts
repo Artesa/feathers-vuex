@@ -29,6 +29,7 @@ import type { ModelSetupContext } from './types'
 import type { Store } from 'vuex'
 import type { GetterName } from './service-module.getters'
 import type { Class } from '../type'
+import { deepEqual as _isEqual } from 'fast-equals'
 
 const defaultOptions = {
   clone: false,
@@ -99,6 +100,29 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
     public static merge = mergeWithAccessors
     public static modelName = 'BaseModel'
 
+    static cachedById: Record<string, { timeout: NodeJS.Timeout; item: any }> =
+      {}
+
+    static setCachedById(id: Id, data: AnyData) {
+      if (!this) {
+        console.log(this)
+      }
+      if (this.cachedById[id]) {
+        clearTimeout(this.cachedById[id].timeout)
+      }
+
+      this.cachedById[id] = {
+        item: Object.assign({}, data),
+        timeout: setTimeout(() => {
+          delete this.cachedById[id]
+        }, 2000)
+      }
+    }
+
+    static getCachedById(id: Id) {
+      return this.cachedById[id]?.item
+    }
+
     public constructor(data: AnyData, options: ModelInstanceOptions) {
       // You have to pass at least an empty object to get a tempId.
       data = data || {}
@@ -113,13 +137,15 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
         tempIdField,
         setupInstance,
         getFromStore,
-        namespace,
-        _commit
+        _commit,
+        setCachedById,
+        getCachedById
       } = this.constructor as typeof BaseModel
+
       const id = getId(data, idField)
       const hasValidId = id !== null && id !== undefined
 
-      if (hasValidId && store?.state?.[namespace]?.replaceItems !== true) {
+      if (hasValidId) {
         const existingItem =
           hasValidId && !options.clone
             ? getFromStore.call(this.constructor, id)
@@ -127,6 +153,17 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
 
         // If it already exists, update the original and return
         if (existingItem) {
+          const existingCache = getCachedById.call(this.constructor, id)
+          if (hasValidId && !existingCache) {
+            setCachedById.call(this.constructor, id, data)
+          } else {
+            if (_isEqual(existingCache, data)) {
+              return existingItem
+            } else {
+              setCachedById.call(this.constructor, id, data)
+            }
+          }
+
           if (!isFeathersVuexInstance(data)) {
             data = setupInstance.call(this, data, { models, store }) || data
           }
@@ -170,9 +207,7 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
       ) {
         const defaults =
           instanceDefaults.call(this, data, { models, store }) || data
-        mergeWithAccessors(this, defaults, {
-          suppressFastCopy: true
-        })
+        mergeWithAccessors(this, defaults, { suppressFastCopy: true })
       }
 
       // Handles Vue objects or regular ones. We can't simply assign or return
@@ -325,7 +360,6 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
 
       _commit.call(this.constructor, `createCopy`, id)
 
-      // const { copiesById } = this.constructor as typeof BaseModel
       return Object.assign(
         (this.constructor as typeof BaseModel).copiesById[id],
         data

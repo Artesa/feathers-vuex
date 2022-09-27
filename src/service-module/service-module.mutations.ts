@@ -104,7 +104,7 @@ export default function makeServiceMutations() {
       )
     }
 
-    const { idField, replaceItems, addOnUpsert, serverAlias, modelName } = state
+    const { idField, addOnUpsert, serverAlias, modelName } = state
     const Model = _get(models, [serverAlias, modelName])
 
     let keyedById
@@ -122,37 +122,23 @@ export default function makeServiceMutations() {
       // Update the record
       if (id !== null && id !== undefined) {
         if (state.keyedById[id]) {
-          // Completely replace the item
-          if (replaceItems) {
-            if (Model && !(item instanceof Model)) {
-              item = new Model(item)
-            }
-            if (!keyedById) {
-              keyedById = {}
-            }
-
-            keyedById[id] = item
-            // Vue.set(state.keyedById, id, item)
-            // Merge in changes
+          /**
+           * If we have a Model class, calling new Model(incomingData) will call update
+           * the original record with the accessors and setupInstance data.
+           * This means that date objects and relationships will be preserved.
+           *
+           * If there's no Model class, just call updateOriginal on the incoming data.
+           */
+          if (Model && !(item instanceof Model)) {
+            item = new Model(item)
           } else {
-            /**
-             * If we have a Model class, calling new Model(incomingData) will call update
-             * the original record with the accessors and setupInstance data.
-             * This means that date objects and relationships will be preserved.
-             *
-             * If there's no Model class, just call updateOriginal on the incoming data.
-             */
-            if (Model && !(item instanceof Model)) {
-              item = new Model(item)
-            } else {
-              const original = state.keyedById[id]
-              updateOriginal(original, item)
+            const original = state.keyedById[id]
+            updateOriginal(original, item)
 
-              const existingClone = Model.copiesById[id]
+            const existingClone = Model.copiesById[id]
 
-              if (existingClone) {
-                mergeWithAccessors(existingClone, item)
-              }
+            if (existingClone) {
+              mergeWithAccessors(existingClone, item)
             }
           }
 
@@ -178,18 +164,14 @@ export default function makeServiceMutations() {
     const id = getId(item, idField)
     const existingItem = state.keyedById[id]
     if (existingItem) {
-      mergeWithAccessors(existingItem, item, {
-        suppressFastCopy: !isFeathersVuexInstance(item)
-      })
+      mergeWithAccessors(existingItem, item)
 
       const Model = _get(models, [state.serverAlias, state.modelName])
 
       const existingClone = Model.copiesById[id]
 
       if (existingClone) {
-        mergeWithAccessors(existingClone, item, {
-          suppressFastCopy: !isFeathersVuexInstance(item)
-        })
+        mergeWithAccessors(existingClone, item)
       }
     }
   }
