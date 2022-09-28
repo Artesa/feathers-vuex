@@ -1,7 +1,7 @@
 {
-  "name": "@fratzinger/feathers-vuex-perf",
+  "name": "@artesa/feathers-vuex-perf",
   "description": "FeathersJS, Vue, and Nuxt for the artisan developer",
-  "version": "4.0.1-16",
+  "version": "5.0.2",
   "homepage": "https://github.com/fratzinger/feathers-vuex",
   "main": "dist/",
   "module": "dist/",
@@ -115,7 +115,8 @@
     "lib": "lib"
   },
   "peerDependencies": {
-    "vue": "^2.7.10"
+    "@vue/composition-api": "^1.0.0-rc.1",
+    "vue": "^2.0.0 || >=3.0.0"
   },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.15",
@@ -175,10 +176,6 @@
     "vuepress": "^1.9.7",
     "vuepress-theme-default-prefers-color-scheme": "^2.0.0",
     "vuex": "^4.0.2"
-  },
-  "peerDependencies": {
-    "@vue/composition-api": "^1.0.0-rc.1",
-    "vue": "^2.0.0 || >=3.0.0"
   },
   "peerDependenciesMeta": {
     "@vue/composition-api": {
