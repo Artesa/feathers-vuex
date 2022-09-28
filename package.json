@@ -1,7 +1,7 @@
 {
   "name": "@artesa/feathers-vuex",
   "description": "FeathersJS, Vue, and Nuxt for the artisan developer",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "homepage": "https://github.com/artesa/feathers-vuex",
   "main": "dist/",
   "module": "dist/",
