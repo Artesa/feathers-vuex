@@ -1,8 +1,8 @@
 {
-  "name": "@artesa/feathers-vuex-perf",
+  "name": "@artesa/feathers-vuex",
   "description": "FeathersJS, Vue, and Nuxt for the artisan developer",
   "version": "5.0.2",
-  "homepage": "https://github.com/fratzinger/feathers-vuex",
+  "homepage": "https://github.com/artesa/feathers-vuex",
   "main": "dist/",
   "module": "dist/",
   "types": "dist/",
@@ -14,20 +14,19 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fratzinger/feathers-vuex"
+    "url": "https://github.com/artesa/feathers-vuex"
   },
   "author": {
     "name": "Feathers Contributors",
-    "email": "22286818+fratzinger@users.noreply.github.com",
-    "url": "https://github.com/fratzinger"
+    "url": "https://github.com/artesa"
   },
   "funding": {
     "type": "Github sponsor",
-    "url": "https://github.com/fratzinger/feathers-vuex"
+    "url": "https://github.com/artesa/feathers-vuex"
   },
   "contributors": [],
   "bugs": {
-    "url": "https://github.com/fratzinger/feathers-vuex/issues"
+    "url": "https://github.com/artesa/feathers-vuex/issues"
   },
   "engines": {
     "node": ">= 4.6.0"
@@ -115,8 +114,7 @@
     "lib": "lib"
   },
   "peerDependencies": {
-    "@vue/composition-api": "^1.0.0-rc.1",
-    "vue": "^2.0.0 || >=3.0.0"
+    "vue": ">=3.0.0"
   },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.15",
@@ -176,10 +174,5 @@
     "vuepress": "^1.9.7",
     "vuepress-theme-default-prefers-color-scheme": "^2.0.0",
     "vuex": "^4.0.2"
-  },
-  "peerDependenciesMeta": {
-    "@vue/composition-api": {
-      "optional": true
-    }
   }
 }
