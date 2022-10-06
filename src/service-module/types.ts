@@ -4,6 +4,8 @@ import type { EventEmitter } from 'events'
 import type { Store } from 'vuex'
 import type { Ref } from 'vue-demi'
 
+type Constructor<T> = { new (): T }
+
 export { Id } from '@feathersjs/feathers'
 
 /*
@@ -254,14 +256,15 @@ export interface ModelStatic extends EventEmitter {
    * A proxy for the `find` action
    * @param params Find params
    */
-  find<M extends Model = Model>(params?: Params): Promise<M[] | Paginated<M>>
+  find<T>(this: Constructor<T>, params?: Params): Promise<T[] | Paginated<T>>
   /**
    * A proxy for the `find` getter
    * @param params Find params
    */
-  findInStore<M extends Model = Model>(
+  findInStore<T>(
+    this: Constructor<T>,
     params?: Params | Ref<Params>
-  ): Paginated<M>
+  ): Paginated<T>
 
   /**
    * A proxy for the `count` action
@@ -279,16 +282,17 @@ export interface ModelStatic extends EventEmitter {
    * @param id ID of record to retrieve
    * @param params Get params
    */
-  get<M extends Model = Model>(id: Id, params?: Params): Promise<M | undefined>
+  get<T>(this: Constructor<T>, id: Id, params?: Params): Promise<T | undefined>
   /**
    * A proxy for the `get` getter
    * @param id ID of record to retrieve
    * @param params Get params
    */
-  getFromStore<M extends Model = Model>(
+  getFromStore<T>(
+    this: Constructor<T>,
     id: Id | Ref<Id>,
     params?: Params | Ref<Params>
-  ): M | undefined
+  ): T | undefined
 }
 
 /** Model instance interface */
