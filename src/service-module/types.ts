@@ -4,7 +4,7 @@ import type { EventEmitter } from 'events'
 import type { Store } from 'vuex'
 import type { Ref } from 'vue-demi'
 
-type Constructor<T> = { new (): T }
+type Constructor<T> = { new (...args: any[]): T }
 
 export { Id } from '@feathersjs/feathers'
 
