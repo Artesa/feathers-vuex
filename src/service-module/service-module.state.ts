@@ -69,6 +69,7 @@ export interface ServiceState<M extends Model = Model> {
   }
   copiesById: {
     [k: string]: M
+    [k: number]: M
   }
   whitelist: string[]
   paramsForServer: string[]

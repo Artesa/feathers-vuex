@@ -135,7 +135,7 @@ export default function makeServiceMutations() {
             const original = state.keyedById[id]
             updateOriginal(original, item)
 
-            const existingClone = Model.copiesById[id]
+            const existingClone = state.copiesById[id]
 
             if (existingClone) {
               mergeWithAccessors(existingClone, item)
@@ -168,7 +168,7 @@ export default function makeServiceMutations() {
 
       const Model = _get(models, [state.serverAlias, state.modelName])
 
-      const existingClone = Model.copiesById[id]
+      const existingClone = state.copiesById[id]
 
       if (existingClone) {
         mergeWithAccessors(existingClone, item)
@@ -208,11 +208,10 @@ export default function makeServiceMutations() {
       }
 
       // Add _id to temp's clone as well if it exists
-      const Model = _get(models, [state.serverAlias, state.modelName])
-      const tempClone = Model && Model.copiesById && Model.copiesById[tempId]
+      const tempClone = state.copiesById[tempId]
       if (tempClone) {
         tempClone[state.idField] = id
-        Model.copiesById[id] = tempClone
+        state.copiesById[id] = tempClone
         delete tempClone['__isTemp']
       }
     },
@@ -222,15 +221,10 @@ export default function makeServiceMutations() {
       const idToBeRemoved = _isObject(item) ? getId(item, idField) : item
       const isIdOk = idToBeRemoved !== null && idToBeRemoved !== undefined
 
-      const Model = _get(models, `[${state.serverAlias}][${state.modelName}]`)
-
       if (isIdOk) {
         delete state.keyedById[idToBeRemoved]
-        if (
-          Model?.copiesById &&
-          Model.copiesById.hasOwnProperty(idToBeRemoved)
-        ) {
-          delete Model.copiesById[idToBeRemoved]
+        if (state.copiesById[idToBeRemoved]) {
+          delete state.copiesById[idToBeRemoved]
         }
       }
     },
@@ -263,16 +257,10 @@ export default function makeServiceMutations() {
         ? items.map((item) => getId(item, idField))
         : items
 
-      const Model = _get(models, [
-        state.serverAlias,
-        'byServicePath',
-        state.servicePath
-      ])
-
-      idsToRemove.forEach(id => {
+      idsToRemove.forEach((id) => {
         delete state.keyedById[id]
-        if (Model?.copiesById && Model.copiesById.hasOwnProperty(id)) {
-          delete Model.copiesById[id]
+        if (state.copiesById[id]) {
+          delete state.copiesById[id]
         }
       })
     },
@@ -280,13 +268,7 @@ export default function makeServiceMutations() {
     clearAll(state) {
       state.keyedById = {}
       state.tempsById = {}
-
-      const Model = _get(models, [
-        state.serverAlias,
-        'byServicePath',
-        state.servicePath
-      ])
-      Object.keys(Model.copiesById).forEach(k => delete Model.copiesById[k])
+      state.copiesById = {}
     },
 
     // Creates a copy of the record with the passed-in id, stores it in copiesById
@@ -300,34 +282,17 @@ export default function makeServiceMutations() {
       if (Model) {
         item = new Model(current, { clone: true })
       } else {
-        const existingClone = state.copiesById[id]
+        const existingClone = state.copiesById[id] || {}
 
-        item = existingClone
-          ? mergeWithAccessors(existingClone, current)
-          : mergeWithAccessors({}, current)
+        item = mergeWithAccessors(existingClone, current)
       }
 
-      // Since it won't be added to the store, make it a Vue object
-      if (!item.hasOwnProperty('__ob__')) {
-        // TODO: Check if this is working
-        // item = Vue.observable(item)
-        item = reactive(item)
-      }
-      if (!Model.hasOwnProperty('copiesById')) {
-        Object.defineProperty(Model, 'copiesById', { value: {} })
-      }
-      Model.copiesById[id] = item
+      state.copiesById[id] = item
     },
 
     // Resets the copy to match the original record, locally
     resetCopy(state, id) {
-      const { servicePath } = state
-      const Model = _get(models, [
-        state.serverAlias,
-        'byServicePath',
-        servicePath
-      ])
-      const copy = Model && _get(Model, ['copiesById', id])
+      const copy = state.copiesById[id]
 
       if (copy) {
         const original =
@@ -340,13 +305,7 @@ export default function makeServiceMutations() {
 
     // Deep assigns copy to original record, locally
     commitCopy(state, id) {
-      const { servicePath } = state
-      const Model = _get(models, [
-        state.serverAlias,
-        'byServicePath',
-        servicePath
-      ])
-      const copy = Model && _get(Model, ['copiesById', id])
+      const copy = state.copiesById[id]
 
       if (copy) {
         const original =
@@ -359,16 +318,8 @@ export default function makeServiceMutations() {
 
     // Removes the copy from copiesById
     clearCopy(state, id) {
-      const Model = _get(models, [
-        state.serverAlias,
-        'byServicePath',
-        state.servicePath
-      ])
-
-      const copiesById = Model.copiesById
-
-      if (copiesById[id]) {
-        delete copiesById[id]
+      if (state.copiesById[id]) {
+        delete state.copiesById[id]
       }
     },
 

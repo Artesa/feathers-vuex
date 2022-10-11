@@ -88,11 +88,6 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
 
     public static readonly models = globalModels as GlobalModels // Can access other Models here
 
-    public static readonly copiesById: {
-      [key: string]: Model | undefined
-      [key: number]: Model | undefined
-    } = {}
-
     public __id: string
     public __isClone: boolean
     public __isTemp: boolean
@@ -130,7 +125,7 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
 
       const {
         store,
-        copiesById,
+        namespace,
         models,
         instanceDefaults,
         idField,
@@ -177,10 +172,12 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
         data && data.hasOwnProperty(tempIdField) ? data[tempIdField] : undefined
       const hasValidTempId = tempId !== null && tempId !== undefined
 
+      const state = store.state[namespace]
+
       // If cloning and a clone already exists, update and return the original clone. Only one clone is allowed.
       const existingClone =
         (hasValidId || hasValidTempId) && options.clone
-          ? copiesById[id] || copiesById[tempId]
+          ? state.copiesById[id] || state.copiesById[tempId]
           : null
       if (existingClone) {
         // This must be done in a mutation to avoid Vuex errors.
@@ -355,15 +352,18 @@ export default function makeBaseModel(options: FeathersVuexOptions) {
       return this._clone(anyId, data) as any
     }
 
-    private _clone(id, data = {}) {
-      const { _commit } = this.constructor as typeof BaseModel
+    private _clone(id, data?: AnyData) {
+      const { _commit, store, namespace } = this.constructor as typeof BaseModel
 
       _commit.call(this.constructor, `createCopy`, id)
 
-      return Object.assign(
-        (this.constructor as typeof BaseModel).copiesById[id],
-        data
-      )
+      const state = store.state[namespace]
+
+      if (data) {
+        Object.assign(state.copiesById[id], data)
+      }
+
+      return state.copiesById[id]
     }
     /**
      * Reset a clone to match the instance in the store.

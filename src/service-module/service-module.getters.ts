@@ -16,22 +16,15 @@ const additionalOperators = ['$elemMatch']
 
 export default function makeServiceGetters() {
   return {
-    list: state => Object.values(state.keyedById),
-    temps: state => Object.values(state.tempsById),
-    copiesById: state => {
-      const Model = models[state.serverAlias].byServicePath[state.servicePath]
-      return Model.copiesById
-    },
-    copies: state => {
-      const Model = models[state.serverAlias].byServicePath[state.servicePath]
-      return Object.values(Model.copiesById)
-    },
-    filterQueryOptions: state => {
+    list: (state) => Object.values(state.keyedById),
+    temps: (state) => Object.values(state.tempsById),
+    copies: (state) => Object.values(state.copiesById),
+    filterQueryOptions: (state) => {
       return {
         operators: additionalOperators.concat(state.whitelist)
       }
     },
-    find: (state, getters) => _params => {
+    find: (state, getters) => (_params) => {
       const params = unref(_params) || {}
 
       const { paramsForServer, idField } = state
@@ -76,9 +69,9 @@ export default function makeServiceGetters() {
       values = values.filter(sift(query))
 
       if (params.copies) {
-        const copiesById = getters.copiesById
+        const { copiesById } = state
         // replace keyedById value with existing clone value
-        values = values.map(value => copiesById[value[idField]] || value)
+        values = values.map((value) => copiesById[value[idField]] || value)
       }
 
       const total = values.length
@@ -104,7 +97,7 @@ export default function makeServiceGetters() {
         data: values
       }
     },
-    count: (state, getters) => _params => {
+    count: (state, getters) => (_params) => {
       const params = unref(_params) || {}
 
       const cleanQuery = _omit(params.query, FILTERS)
@@ -127,8 +120,8 @@ export default function makeServiceGetters() {
 
         return tempRecord || null
       },
-    getCopyById: (state, getters) => id => {
-      return getters.copiesById[id]
+    getCopyById: (state) => (id) => {
+      return state.copiesById[id]
     },
 
     isCreatePendingById:

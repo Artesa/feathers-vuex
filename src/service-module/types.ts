@@ -176,13 +176,6 @@ export interface ModelStatic extends EventEmitter {
    * The global `models` object
    */
   readonly models: GlobalModels
-  /**
-   * All model copies created using `model.clone()`
-   */
-  readonly copiesById: {
-    [key: string]: Model | undefined
-    [key: number]: Model | undefined
-  }
 
   cachedById: any
 
@@ -338,7 +331,7 @@ export interface Model {
 
   /**
    * Creates a deep copy of the record and stores it on
-   * `Model.copiesById`. This allows you to make changes
+   * `state.copiesById`. This allows you to make changes
    * to the clone and not update visible data until you
    * commit or save the data.
    * @param data Properties to modify on the cloned instance
