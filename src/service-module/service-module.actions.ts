@@ -4,7 +4,7 @@ eslint
 @typescript-eslint/no-explicit-any: 0
 */
 import fastCopy from 'fast-copy'
-import { getId } from '../utils'
+import { asArray, getId } from '../utils'
 import type { Service } from '@feathersjs/feathers'
 import type { MakeServicePluginOptions } from './types'
 
@@ -31,8 +31,10 @@ export default function makeServiceActions({
 
       return service
         .find(params)
-        .then(response => dispatch('handleFindResponse', { params, response }))
-        .catch(error => dispatch('handleFindError', { params, error }))
+        .then((response) =>
+          dispatch('handleFindResponse', { params, response })
+        )
+        .catch((error) => dispatch('handleFindError', { params, error }))
     },
 
     // Two query syntaxes are supported, since actions only receive one argument.
@@ -69,7 +71,7 @@ export default function makeServiceActions({
             commit('unsetPending', 'get')
             return state.keyedById[id]
           })
-          .catch(error => {
+          .catch((error) => {
             commit('setError', { method: 'get', error })
             commit('unsetPending', 'get')
             return Promise.reject(error)
@@ -100,7 +102,7 @@ export default function makeServiceActions({
       params = fastCopy(params)
 
       if (Array.isArray(data)) {
-        tempIds = data.map(i => i[tempIdField])
+        tempIds = data.map((i) => i[tempIdField])
       } else {
         tempIds = [data[tempIdField]] // Array of tempIds
       }
@@ -112,29 +114,35 @@ export default function makeServiceActions({
 
       return service
         .create(data, params)
-        .then(async response => {
-          if (Array.isArray(response)) {
-            dispatch('addOrUpdateList', response)
-            response = response.map(item => {
-              const id = getId(item, idField)
+        .then(async (response) => {
+          const { items, isArray } = asArray(response)
 
-              return state.keyedById[id]
-            })
-          } else {
-            const id = getId(response, idField)
-            const tempId = tempIds[0]
+          const ids = items.map((item) => getId(item, idField))
+
+          items.forEach((item, i) => {
+            const id = ids[i]
+            const tempId = tempIds[i]
 
             if (id != null && tempId != null) {
               commit('updateTemp', { id, tempId })
             }
-            response = dispatch('addOrUpdate', response)
+          })
 
-            // response = state.keyedById[id]
+          if (isArray) {
+            dispatch('addOrUpdateList', items)
+            response = items.map((item, i) => {
+              const id = ids[i]
+
+              return state.keyedById[id]
+            })
+          } else {
+            response = dispatch('addOrUpdate', items[0])
           }
+
           commit('removeTemps', tempIds)
           return response
         })
-        .catch(error => {
+        .catch((error) => {
           commit('setError', { method: 'create', error })
           return Promise.reject(error)
         })
@@ -156,7 +164,7 @@ export default function makeServiceActions({
           dispatch('addOrUpdate', item)
           return state.keyedById[id]
         })
-        .catch(error => {
+        .catch((error) => {
           commit('setError', { method: 'update', error })
           return Promise.reject(error)
         })
@@ -194,7 +202,7 @@ export default function makeServiceActions({
           dispatch('addOrUpdate', item)
           return state.keyedById[id]
         })
-        .catch(error => {
+        .catch((error) => {
           commit('setError', { method: 'patch', error })
           return Promise.reject(error)
         })
@@ -223,11 +231,11 @@ export default function makeServiceActions({
 
       return service
         .remove(id, params)
-        .then(item => {
+        .then((item) => {
           commit('removeItem', id)
           return item
         })
-        .catch(error => {
+        .catch((error) => {
           commit('setError', { method: 'remove', error })
           return Promise.reject(error)
         })
@@ -250,10 +258,10 @@ export default function makeServiceActions({
       params.query.$limit = 0 // <- limit 0 in feathers is a fast count query
 
       return dispatch('find', params)
-        .then(response => {
+        .then((response) => {
           return response.total || response.length
         })
-        .catch(error => dispatch('handleFindError', { params, error }))
+        .catch((error) => dispatch('handleFindError', { params, error }))
     },
     /**
      * Handle the response from the find action.
@@ -273,7 +281,7 @@ export default function makeServiceActions({
       dispatch('addOrUpdateList', response)
       commit('unsetPending', 'find')
 
-      const mapItemFromState = item => {
+      const mapItemFromState = (item) => {
         const id = getId(item, idField)
 
         return state.keyedById[id]
@@ -330,9 +338,9 @@ export default function makeServiceActions({
 
       if (!isPaginated && !disableRemove) {
         // Find IDs from the state which are not in the list
-        getters.list.forEach(_item => {
+        getters.list.forEach((_item) => {
           const id = getId(_item, idField)
-          if (!list.some(item => getId(item, idField) === id)) {
+          if (!list.some((item) => getId(item, idField) === id)) {
             toRemove.push(state.keyedById[id])
           }
         })
@@ -391,7 +399,7 @@ export default function makeServiceActions({
   /**
    * Only add a method to the store if the service actually has that same method.
    */
-  Object.keys(serviceActions).map(method => {
+  Object.keys(serviceActions).map((method) => {
     if (service[method] && typeof service[method] === 'function') {
       actions[method] = serviceActions[method]
     }

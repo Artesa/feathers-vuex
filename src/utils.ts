@@ -192,7 +192,7 @@ export const initAuth = function initAuth(options) {
  * run de BaseModel hydration on client for each api
  */
 export const hydrateApi = function hydrateApi({ api }) {
-  Object.keys(api).forEach(modelName => {
+  Object.keys(api).forEach((modelName) => {
     if (!['byServicePath', 'BaseModel'].includes(modelName)) {
       const Model = api[modelName]
       Model.hydrateAll()
@@ -376,7 +376,7 @@ export function getItemsFromQueryInfo(pagination, queryInfo, keyedById) {
   const ids = pageLevel && pageLevel.ids
 
   if (ids && ids.length) {
-    return ids.map(id => keyedById[id])
+    return ids.map((id) => keyedById[id])
   } else {
     return []
   }
@@ -428,8 +428,8 @@ export function createRelatedInstance({ item, Model, idField, store }) {
 }
 
 export function isBaseModelInstance(item) {
-  const baseModels = Object.keys(models).map(alias => models[alias].BaseModel)
-  return !!baseModels.find(BaseModel => {
+  const baseModels = Object.keys(models).map((alias) => models[alias].BaseModel)
+  return !!baseModels.find((BaseModel) => {
     return item instanceof BaseModel
   })
 }
@@ -471,5 +471,13 @@ export function assignIfNotPresent(Model, props): void {
     if (!Model.hasOwnProperty(key)) {
       Model[key] = props[key]
     }
+  }
+}
+
+export function asArray<T>(val: T | T[]): { items: T[]; isArray: boolean } {
+  const isArray = Array.isArray(val)
+  return {
+    items: isArray ? val : val == null ? [] : [val],
+    isArray
   }
 }
