@@ -21,6 +21,11 @@ export default defineComponent({
       default: () => null
     }
   },
+  emits: {
+    'update:modelValue'(payload: Object) {
+      return typeof payload === 'object'
+    }
+  },
   // eslint-disable-next-line
   setup(props, context) {
     /**
@@ -52,7 +57,7 @@ export default defineComponent({
         const $limit = props.modelValue.$limit
         const $skip = $limit * (pageNumber - 1)
 
-        context.emit('input', { $limit, $skip })
+        context.emit('update:modelValue', { $limit, $skip })
       },
       get() {
         const params = props.modelValue
