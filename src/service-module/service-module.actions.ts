@@ -5,11 +5,10 @@ eslint
 */
 import fastCopy from 'fast-copy'
 import { asArray, getId } from '../utils'
-import type { Service } from '@feathersjs/feathers'
-import type { MakeServicePluginOptions } from './types'
+import type { MakeServicePluginOptions, ServiceVuex } from './types'
 
 interface ServiceAndOptions {
-  service: Service<any>
+  service: ServiceVuex
   options: MakeServicePluginOptions
 }
 

@@ -12,7 +12,7 @@ import _omit from 'lodash/omit'
 import ObjectID from 'bson-objectid'
 import { globalModels as models } from './service-module/global-models'
 import stringify from 'fast-json-stable-stringify'
-import type { Service } from '@feathersjs/feathers'
+import type { ServiceVuex } from './service-module/types'
 
 interface Query {
   [key: string]: any
@@ -396,7 +396,7 @@ export function makeNamespace(namespace, servicePath, nameStyle) {
  * @param service
  * @param modelName
  */
-export function getServicePath(service: Service<any>, Model: any) {
+export function getServicePath(service: ServiceVuex, Model: any) {
   if (!service.name && !service.path && !Model.servicePath) {
     throw new Error(
       `Service for model named ${Model.name} is missing a path or name property. The feathers adapter needs to be updated with a PR to expose this property. You can work around this by adding a static servicePath =  passing a 'servicePath' attribute in the options: makeServicePlugin({servicePath: '/path/to/my/service'})`

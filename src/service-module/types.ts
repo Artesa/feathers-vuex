@@ -30,6 +30,17 @@ export interface FeathersVuexOptions {
   whitelist?: string[]
 }
 
+export type ServiceVuex<
+  Result = any,
+  Data = Partial<Result>,
+  ServiceParams = Params,
+  PatchData = Partial<Data>
+> = Service<Result, Data, ServiceParams, PatchData> & {
+  FeathersVuexModel: any
+  name?: string
+  path?: string
+}
+
 export interface HandleEvents {
   created?: Function
   patched?: Function
@@ -44,7 +55,7 @@ export interface ServicePluginExtendOptions {
 
 export interface MakeServicePluginOptions {
   Model: any
-  service: Service<any>
+  service: ServiceVuex<any>
 
   idField?: string
   tempIdField?: string
