@@ -4,26 +4,16 @@ eslint
 @typescript-eslint/no-explicit-any: 0
 */
 import sift from 'sift'
-import { filterQuery, sorter, select } from '@feathersjs/adapter-commons'
-import { globalModels as models } from './global-models'
-import _omit from 'lodash/omit'
+import { sorter, select } from '@feathersjs/adapter-commons'
 import { unref } from 'vue-demi'
 import type { ServiceState } from '..'
 import type { Id } from '@feathersjs/feathers'
-
-const FILTERS = ['$sort', '$limit', '$skip', '$select']
-const additionalOperators = ['$elemMatch']
 
 export default function makeServiceGetters() {
   return {
     list: (state) => Object.values(state.keyedById),
     temps: (state) => Object.values(state.tempsById),
     copies: (state) => Object.values(state.copiesById),
-    filterQueryOptions: (state) => {
-      return {
-        operators: additionalOperators.concat(state.whitelist)
-      }
-    },
     find: (state, getters) => (_params) => {
       const params = unref(_params) || {}
 
@@ -58,7 +48,7 @@ export default function makeServiceGetters() {
         delete q.$limit
       }
 
-      const { query, filters } = filterQuery(q, getters.filterQueryOptions)
+      const { $sort, $limit, $skip, $select, ...query } = q
 
       let values = getters.list.slice(0)
 
@@ -76,34 +66,40 @@ export default function makeServiceGetters() {
 
       const total = values.length
 
-      if (filters.$sort !== undefined) {
-        values.sort(sorter(filters.$sort))
+      if ($sort !== undefined) {
+        values.sort(sorter($sort))
       }
 
-      if (filters.$skip !== undefined && filters.$limit !== undefined) {
-        values = values.slice(filters.$skip, filters.$limit + filters.$skip)
-      } else if (filters.$skip !== undefined || filters.$limit !== undefined) {
-        values = values.slice(filters.$skip, filters.$limit)
+      if ($skip !== undefined && $limit !== undefined) {
+        values = values.slice($skip, $limit + $skip)
+      } else if ($skip !== undefined || $limit !== undefined) {
+        values = values.slice($skip, $limit)
       }
 
-      if (filters.$select) {
+      if ($select) {
         values = select(params)(values)
       }
 
       return {
         total,
-        limit: filters.$limit || 0,
-        skip: filters.$skip || 0,
+        limit: $limit ?? 0,
+        skip: $skip ?? 0,
         data: values
       }
     },
     count: (state, getters) => (_params) => {
       const params = unref(_params) || {}
 
-      const cleanQuery = _omit(params.query, FILTERS)
-      params.query = cleanQuery
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { $limit, $skip, $sort, $select, ...query } = params?.query ?? {}
 
-      return getters.find(params).total
+      return getters.find({
+        ...params,
+        query: {
+          ...query,
+          $limit: 0
+        }
+      }).total
     },
     get:
       ({ keyedById, tempsById, idField, tempIdField }) =>
